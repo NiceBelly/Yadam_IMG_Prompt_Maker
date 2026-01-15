@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -300,6 +301,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎨 야담 이미지 프롬프트 생성기</h1>
@@ -307,7 +309,8 @@
 
         <div class="input-section">
             <label for="scriptInput">대본 입력:</label>
-            <textarea id="scriptInput" placeholder="챕터가 포함된 대본을 입력하세요... (예: 5챕터. 사건 발생, '돈 주고 들인' 새색시)"></textarea>
+            <textarea id="scriptInput"
+                placeholder="챕터를 줄바꿈 2번(빈 줄)으로 구분하여 대본을 입력하세요...&#10;&#10;예시:&#10;사건의 시작&#10;주인공이 한양에 도착한다...&#10;&#10;첫 만남&#10;시장에서 우연히 여주인공을 만난다..."></textarea>
             <div class="char-count" id="charCount">0자</div>
         </div>
 
@@ -340,51 +343,41 @@
         let chapters = [];
 
         // 문자 수 카운트
-        scriptInput.addEventListener('input', function() {
+        scriptInput.addEventListener('input', function () {
             charCount.textContent = `${this.value.length}자`;
         });
 
         // 챕터별 프롬프트 생성
-        processButton.addEventListener('click', function() {
+        processButton.addEventListener('click', function () {
             const script = scriptInput.value.trim();
-            
+
             if (!script) {
                 showNotification('대본을 먼저 입력해주세요! ⚠️', '#ff9800');
                 return;
             }
 
-            // 챕터 분리 (정규식: 숫자 + "챕터" + 임의의 문자들)
-            const chapterRegex = /(\d+챕터[^\n]+)/g;
-            const parts = script.split(chapterRegex);
-            
+            // 챕터 분리 (줄바꿈 2번으로 구분)
+            const parts = script.split(/\n\n+/);
+
             chapters = [];
-            let currentChapter = null;
 
-            for (let i = 0; i < parts.length; i++) {
-                const part = parts[i].trim();
-                if (!part) continue;
+            parts.forEach((part, index) => {
+                const trimmedPart = part.trim();
+                if (!trimmedPart) return;
 
-                // 챕터 제목인지 확인
-                if (/^\d+챕터/.test(part)) {
-                    if (currentChapter) {
-                        chapters.push(currentChapter);
-                    }
-                    currentChapter = {
-                        title: part,
-                        content: ''
-                    };
-                } else if (currentChapter) {
-                    currentChapter.content += part;
-                }
-            }
+                // 첫 줄을 제목으로, 나머지를 내용으로 분리
+                const lines = trimmedPart.split('\n');
+                const title = lines[0].trim() || `챕터 ${index + 1}`;
+                const content = lines.slice(1).join('\n').trim() || lines[0];
 
-            // 마지막 챕터 추가
-            if (currentChapter) {
-                chapters.push(currentChapter);
-            }
+                chapters.push({
+                    title: title,
+                    content: content
+                });
+            });
 
             if (chapters.length === 0) {
-                showNotification('챕터를 찾을 수 없습니다! n챕터 형식을 확인해주세요.', '#ff9800');
+                showNotification('챕터를 찾을 수 없습니다! 줄바꿈 2번으로 챕터를 구분해주세요.', '#ff9800');
                 return;
             }
 
@@ -395,10 +388,10 @@
         // 챕터 목록 표시
         function displayChapters() {
             chaptersList.innerHTML = '';
-            
+
             chapters.forEach((chapter, index) => {
-                const prompt = `${promptPrefix}\n${chapter.content.trim()}\n]`;
-                
+                const prompt = `${promptPrefix}]`;
+
                 const chapterDiv = document.createElement('div');
                 chapterDiv.className = 'chapter-item';
                 chapterDiv.innerHTML = `
@@ -416,12 +409,12 @@
                         </button>
                     </div>
                 `;
-                
+
                 chaptersList.appendChild(chapterDiv);
             });
 
             chaptersContainer.classList.add('show');
-            
+
             // 챕터 목록으로 스크롤
             setTimeout(() => {
                 chaptersContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -429,10 +422,10 @@
         }
 
         // 개별 챕터 대본 복사
-        window.copyScript = async function(index) {
+        window.copyScript = async function (index) {
             const chapter = chapters[index];
             const script = chapter.content.trim();
-            
+
             try {
                 await navigator.clipboard.writeText(script);
                 showNotification(`"${chapter.title}" 대본이 복사되었습니다! ✓`, '#38ef7d');
@@ -444,23 +437,23 @@
                 textArea.style.left = '-999999px';
                 document.body.appendChild(textArea);
                 textArea.select();
-                
+
                 try {
                     document.execCommand('copy');
                     showNotification(`"${chapter.title}" 대본이 복사되었습니다! ✓`, '#38ef7d');
                 } catch (err) {
                     showNotification('복사 실패! 다시 시도해주세요.', '#f44336');
                 }
-                
+
                 document.body.removeChild(textArea);
             }
         };
 
         // 개별 챕터 프롬프트 복사
-        window.copyChapterPrompt = async function(index) {
+        window.copyChapterPrompt = async function (index) {
             const chapter = chapters[index];
             const prompt = `${promptPrefix}\n${chapter.content.trim()}\n]`;
-            
+
             try {
                 await navigator.clipboard.writeText(prompt);
                 showNotification(`"${chapter.title}" 프롬프트가 복사되었습니다! ✓`, '#4caf50');
@@ -472,20 +465,20 @@
                 textArea.style.left = '-999999px';
                 document.body.appendChild(textArea);
                 textArea.select();
-                
+
                 try {
                     document.execCommand('copy');
                     showNotification(`"${chapter.title}" 프롬프트가 복사되었습니다! ✓`, '#4caf50');
                 } catch (err) {
                     showNotification('복사 실패! 다시 시도해주세요.', '#f44336');
                 }
-                
+
                 document.body.removeChild(textArea);
             }
         };
 
         // 초기화 버튼
-        clearButton.addEventListener('click', function() {
+        clearButton.addEventListener('click', function () {
             scriptInput.value = '';
             charCount.textContent = '0자';
             chaptersList.innerHTML = '';
@@ -500,7 +493,7 @@
             notification.textContent = message;
             notification.style.background = color;
             notification.classList.add('show');
-            
+
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 2000);
@@ -512,4 +505,5 @@
         });
     </script>
 </body>
+
 </html>
