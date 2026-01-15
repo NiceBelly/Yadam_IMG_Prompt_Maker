@@ -452,7 +452,7 @@
         // 개별 챕터 프롬프트 복사
         window.copyChapterPrompt = async function (index) {
             const chapter = chapters[index];
-            const prompt = `${promptPrefix}]`;
+            const prompt = `${promptPrefix}\n${chapter.content.trim()}\n]`;
 
             try {
                 await navigator.clipboard.writeText(prompt);
