@@ -330,7 +330,7 @@
     <div class="notification" id="notification">프롬프트가 복사되었습니다! ✓</div>
 
     <script>
-        const promptPrefix = "Semi-realistic detailed watercolor-style digital illustration, Korean Joseon dynasty, strictly Korean faces, expressive emotions, clean line art, soft cinematic lighting, hanbok with historical accuracy (sangtu for men, jjokjin meori for women), authentic Joseon-era background, no modern elements, emotional and dramatic atmosphere, 8K quality. Composition: Main characters positioned on the right side of the frame. [ ";
+        const promptPrefix = "Semi-realistic detailed watercolor-style digital illustration, Korean Joseon dynasty, strictly Korean faces, expressive emotions, clean line art, soft cinematic lighting, hanbok with historical accuracy (sangtu for men, jjokjin meori for women), authentic Joseon-era background, no modern elements, emotional and dramatic atmosphere, high quality. Composition: centered full-frame composition with balanced character placement. [ ";
 
         const scriptInput = document.getElementById('scriptInput');
         const processButton = document.getElementById('processButton');
@@ -452,7 +452,9 @@
         // 개별 챕터 프롬프트 복사
         window.copyChapterPrompt = async function (index) {
             const chapter = chapters[index];
-            const prompt = `${promptPrefix}\n${chapter.content.trim()}\n]`;
+            // 큰따옴표 안의 내용 제거
+            const contentWithoutQuotes = chapter.content.trim().replace(/"[^"]*"/g, '');
+            const prompt = `${promptPrefix}\n${contentWithoutQuotes}\n]`;
 
             try {
                 await navigator.clipboard.writeText(prompt);
@@ -479,13 +481,7 @@
 
         // 초기화 버튼
         clearButton.addEventListener('click', function () {
-            scriptInput.value = '';
-            charCount.textContent = '0자';
-            chaptersList.innerHTML = '';
-            chaptersContainer.classList.remove('show');
-            chapters = [];
-            scriptInput.focus();
-            showNotification('초기화되었습니다! 🔄', '#2196f3');
+            location.reload();
         });
 
         // 알림 표시 함수
